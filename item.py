@@ -5,7 +5,7 @@ def five_button_item():
             item1 -=1
             A_fill = 0
     if not button_A.value:  # left pressed, increase player speed
-      
+      pass
 
 def six_button_item():
     item2 = 1
@@ -14,5 +14,5 @@ def six_button_item():
         item2 -=1
         B_fill = 0
     if not button_B.value:  # left pressed, slow enemy speed
-        
+        pass
 

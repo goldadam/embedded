@@ -5,17 +5,10 @@ import board
 from digitalio import DigitalInOut, Direction
 from PIL import Image, ImageDraw, ImageFont
 import adafruit_rgb_display.st7789 as st7789
-import Player.py as Player
-import Enemy.py as Enemy
-import item.py as item
 
-import Player
-from Player import Player1
-player = Player1()
-
-import Enemy
-from Enemy import Enemy1
-Enemy = Enemy1()
+from Player import Player
+from Enemy import Enemy
+from Enemies import Enemies
 
 
 
@@ -28,7 +21,6 @@ cs_pin = DigitalInOut(board.CE0)
 dc_pin = DigitalInOut(board.D25)
 reset_pin = DigitalInOut(board.D24)
 BAUDRATE = 24000000
-player_life = 3
 
 spi = board.SPI()
 disp = st7789.ST7789(
@@ -96,45 +88,107 @@ button_outline = "#FFFFFF"
 black_outline = "#000000"
 text_fill = "#1FDA11"
 
-
-total_score = 0
-Life = 3
-goal_score = 20
+fnt = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 25)
+fnt2 = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 15)
+background = Image.open('images/background1.jpg')
+background = background.resize((240, 240))
+#draw.text((40,120), "total score: ", font = fnt, fill = text_fill ) #total score 표시되게 해야됨
+#draw.text((180, 120),"life: ", font = fnt, fill = text_fill ) #남은 life 표시되게 해야됨
+#enemy = Enemy(0, 0, 25, 25)
+enemy_index = [0, 1, 2, 3, 4, 5, 6, 7]
 stage = 1
+first = 0
+life = 3
+hit = 0
+speed = 15
+delete_enemy = []
+up_down = 'None'
+left_right = 'None'
+enemies = Enemies(stage)
+player = Player(life, speed)
+button_a = 0
+button_b = 0
+while True:
+    up_down = 'None'
+    left_right = 'None'
+    image.paste(background, (0,0))
+    #image.paste(enemy.image, (enemy.left_top_x, enemy.left_top_y))
+    if first == 0:
+        delete_enemy = random.sample(enemy_index, 2)
+        first = 1
+    
+    if not button_U.value:  # up pressed
+        up_down = 'up'
+    if not button_D.value:  # down pressed
+        up_down = 'down'
+    if not button_L.value:  # left pressed
+        left_right = 'left'
+    if not button_R.value:  # right pressed
+        left_right = 'right'
+    if not button_A.value:  # left pressed, fast player speed
+        if button_a == 0:
+            for enemy in enemies.enemy_list :
+                enemy.speed_down()
+            print('enemy speed down!')
+            button_a += 1
+    if not button_B.value:  # left pressed, slow enemy speed
+        if button_b == 0:
+            player.speed_up()
+            print('speed up!')
+            button_b += 1
 
-fnt = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 15)
-background = image.open(background.jpg)
-draw.text((40,120), "total score: ", font = fnt, fill = text_fill ) #total score 표시되게 해야됨
-draw.text((180, 120),"life: ", font = fnt, fill = text_fill ) #남은 life 표시되게 해야됨
-Player1 = image.open(player.jpg)
-Enemy1 = image.open(enemy.jpg)
-#background
-#image.open(파일경로)
-#background = image.paste() background 이산수학 시험지로
-#player
-# image.open(파일 경로)
-#player = image.paste() pass 이미지 활용하기
-#playerWidth = CharacterSize[0]
-#playerHeight = CharacterSize[1]
-#Enemy = image.paste() F떨어지는거
-#EnemyWidth = CharacterSize[0]
-#EnemyHeight = CharacterSize[1]
+    for i in range(len(enemies.enemy_list)) :
+        if i in delete_enemy :
+            continue
+        else :
+            image.paste(enemies.enemy_list[i].image, (enemies.enemy_list[i].left_top_x, enemies.enemy_list[i].left_top_y))
+    image.paste(player.image, (player.x_position, player.y_position))
+    player.move(up_down, left_right)
 
+    for i in range(len(enemies.enemy_list)) :
+        enemies.enemy_list[i].step()
+        if i in delete_enemy :
+            continue
+        hit = hit or enemies.enemy_list[i].hit_check(player)
+    
+    if hit == 1:
+        life -= 1
+        print(life)
 
-#score 위치 print : 왼쪽 위 life = (Player.life)    오른쪽 위 total_score = 써놓기
-#class Player:
-    #def __init__(self):
-        #self.Life = Life
-        #self.x_position = self.width/2
-        #self.y_position = self.height - 180
-        #self.image = player.image #이미지 파일 pass 임
-        #self.spd = 5
-        #self.max_spd
-        #if life <= 0 print("game end you got F grade") break
-        #움직일수 있는 위치 0<=x<=240 0<=y<=70
-        #if total_score == 20 print("you Win!!! you got A grade!") break
-        #조이스틱 방향을 direction 으로 구현할지 아니면 그냥 x, y좌표 변경으로 구할지 -> x,y 변경 방식으로 하자.
-        
+    if player.life == 0:
+        while True:
+                draw.rectangle((0, 0, width, height), outline=0, fill=0)
+
+                rcolor = tuple(int (x * 255) for x in hsv_to_rgb(random.random(), 1, 1))
+            
+                draw.text((52, 90), "YOU GOT F GRADE", font = fnt2, fill = rcolor)
+            
+                draw.text((52, 120), "YOU GOT F GRADE", font = fnt2, fill = rcolor)
+            
+                draw.text((52, 150), "YOU GOT F GRADE", font = fnt2, fill = rcolor)    #game clear 시..
+                disp.image(image)
+    if enemies.enemy_list[0].left_top_y >= 240 or hit :
+        hit = 0
+        first = 0
+        stage += 1
+        enemies = Enemies(stage)
+        player = Player(life, speed)
+        if stage > 20:
+            while True:
+                draw.rectangle((0, 0, width, height), outline=0, fill=0)
+
+                rcolor = tuple(int (x * 255) for x in hsv_to_rgb(random.random(), 1, 1))
+            
+                draw.text((65, 90), "Game Clear!!!", font = fnt2, fill = rcolor)
+            
+                draw.text((65, 120), "Game Clear!!!", font = fnt2, fill = rcolor)
+            
+                draw.text((65, 150), "Game Clear!!!", font = fnt2, fill = rcolor)    #game clear 시..
+                disp.image(image)
+    draw.text((10,10), "stage: " + str(stage), font = fnt, fill = (255, 0, 0) ) #total score 표시되게 해야됨
+    draw.text((160, 10),"life: " + str(life), font = fnt, fill = (255, 0, 0) ) #남은 life 표시되게 해야됨
+    # Display the Image
+    disp.image(image)
 
 
 
@@ -152,60 +206,3 @@ Enemy1 = image.open(enemy.jpg)
         #else Enemy.spd = 15(# 10단계까지)
         #if total_score >= 5 spd = spd+5
         #if spd = mx_spd: spd = mx_spd
-
-circle_center_x = width/2
-circle_center_y = height/2 + 15
-
-while True:
-    up_fill = 0
-    Player.x_position = circle_center_x
-    Player.y_position = circle_center_y
-    if not button_U.value:  # up pressed
-        up_fill = udlr_fill
-        button_check = 1
-        circle_center_y -= player.spd
-
-  
-    down_fill = 0
-    
-    if not button_D.value:  # down pressed
-        down_fill = udlr_fill
-        button_check = 1
-        circle_center_y += player.spd
-
- 
-    left_fill = 0
-    if not button_L.value:  # left pressed
-        left_fill = udlr_fill
-        button_check = 1
-        circle_center_x -= player.spd
-
-   
-
-    if not button_R.value:  # right pressed
-        right_fill = udlr_fill
-        button_check = 1
-        circle_center_x += player.spd
-
-
-
-
- 
-      # B button
-    
-    
-     #epplipse position = 
-    #draw.rectangle((0, 0, width, height), outline=0, fill=0)
-
-
-
-
-
-
-
-    
-
-    # Display the Image
-    disp.image(image)
-
-    time.sleep(0.01)

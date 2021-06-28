@@ -1,38 +1,12 @@
-import main as if __name__ == '__main__':
-    main()
-    
-
-
 from PIL import Image, ImageDraw, ImageFont
-button_A = DigitalInOut(board.D5)
-button_A.direction = Direction.INPUT
-
-button_B = DigitalInOut(board.D6)
-button_B.direction = Direction.INPUT
-
-button_L = DigitalInOut(board.D27)
-button_L.direction = Direction.INPUT
-
-button_R = DigitalInOut(board.D23)
-button_R.direction = Direction.INPUT
-
-button_U = DigitalInOut(board.D17)
-button_U.direction = Direction.INPUT
-
-button_D = DigitalInOut(board.D22)
-button_D.direction = Direction.INPUT
-
-button_C = DigitalInOut(board.D4)
-button_C.direction = Direction.INPUT
-class Player1:
-    def __init__(self):
-        self.Life =Life
-        self.x_position = self.width/2
-        self.y_position = self.height - 180
-        self.image = Image.open("images/player.jpg") #이미지 파일 pass 임
-        self.spd = 15
+class Player:
+    def __init__(self, life, speed):
+        self.life = life
+        self.x_position = 120
+        self.y_position = 210
+        self.image = Image.open("images/player1.jpg") #이미지 파일 pass 임
+        self.spd = speed
         self.max_spd = 30
-        
         #if life <= 0 print("game end you got F grade") break
         #움직일수 있는 위치 0<=x<=240 0<=y<=70
         
@@ -41,32 +15,29 @@ class Player1:
     
     
     
-    def move(self, direction):
+    def move(self, up_down, left_right):
+        if up_down == 'up':
+            if self.y_position - self.spd < 0:
+                pass
+            else :
+                self.y_position -= self.spd
+        elif up_down == 'down':
+            if self.y_position + self.spd > 215:
+                pass
+            else :
+                self.y_position += self.spd
+        if left_right == 'left':
+            if self.x_position - self.spd < 0:
+                pass
+            else :
+                self.x_position -= self.spd
+        elif left_right == 'right':
+            if self.x_position + self.spd > 215:
+                pass
+            else :
+                self.x_position += self.spd
+
         #움직이는 코드 ~
        
-    while True:
-        
-        Player.x_position = circle_center_x
-        Player.y_position = circle_center_y
-    
-    if (y_position < 40):
-        y_position = 40             #player 가 갈수 있는 위치 정해주기...
-
-
-    if not button_U.value:  # up pressed
-        circle_center_y -= Player1.spd
-
-  
-    if not button_D.value:  # down pressed
-        circle_center_y += Player1.spd
-
- 
-    
-    if not button_L.value:  # left pressed
-        circle_center_x -= Player1.spd
-
-   
-
-    if not button_R.value:  # right pressed
-        circle_center_x += Player1.spd
-
+    def speed_up(self):
+        self.spd += 10
