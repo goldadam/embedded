@@ -12,6 +12,6 @@ class Enemies:
             self.x1 += 30
             self.x2 += 30
             
-
+#enemy를 여러개를 담을 수 있는 클래스를 만듦..(한번에 내려가야 하기 때문)
 
 

@@ -11,11 +11,6 @@ from Enemy import Enemy
 from Enemies import Enemies
 
 
-
-
-#해야 될 것 라즈베리에 연결해서 Image를 원하는 사이즈로 출력을 시켜보새ㅔ여  Pil resize 검색해서 해보고 Pil paste Image.paste 검색해서 붙여보고 paste 순서 신경 써서
-# 240 x 240  8칸으로 나누면 F라는게 
-
 # Create the display
 cs_pin = DigitalInOut(board.CE0)
 dc_pin = DigitalInOut(board.D25)
@@ -91,32 +86,30 @@ text_fill = "#1FDA11"
 fnt = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 25)
 fnt2 = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 15)
 background = Image.open('images/background1.jpg')
-background = background.resize((240, 240))
-#draw.text((40,120), "total score: ", font = fnt, fill = text_fill ) #total score 표시되게 해야됨
-#draw.text((180, 120),"life: ", font = fnt, fill = text_fill ) #남은 life 표시되게 해야됨
-#enemy = Enemy(0, 0, 25, 25)
-enemy_index = [0, 1, 2, 3, 4, 5, 6, 7]
+background = background.resize((240, 240)) #240 240 크기
+enemy_index = [0, 1, 2, 3, 4, 5, 6, 7]  #한줄에 총 8개의 적들 리스트로 설정
 stage = 1
-first = 0
+new_stage = 0 #새로운 스테이지 마다 랜덤으로 enemy를 생성하기 위해 설정해 놓은 것
 life = 3
 hit = 0
-speed = 15
-delete_enemy = []
+speed = 15 #player speed
+delete_enemy = [] #지워지는 적들 index 리스트에 저장
 up_down = 'None'
 left_right = 'None'
-enemies = Enemies(stage)
-player = Player(life, speed)
+enemies = Enemies(stage) #Enemies 객체 생성
+player = Player(life, speed) #player 객체 생성
 button_a = 0
 button_b = 0
 while True:
-    up_down = 'None'
+    up_down = 'None' #초기화
     left_right = 'None'
-    image.paste(background, (0,0))
-    #image.paste(enemy.image, (enemy.left_top_x, enemy.left_top_y))
-    if first == 0:
+    image.paste(background, (0,0)) #백그라운드 이미지 붙이기
+    if new_stage == 0: #새로운 스테이지 시 지울 enemies 초기화 후 랜덤으로 뽑기
         delete_enemy = random.sample(enemy_index, 2)
-        first = 1
+        new_stage = 1 #1일땐 old stage
     
+
+    #방향 버튼 눌렀을때 
     if not button_U.value:  # up pressed
         up_down = 'up'
     if not button_D.value:  # down pressed
@@ -126,35 +119,34 @@ while True:
     if not button_R.value:  # right pressed
         left_right = 'right'
     if not button_A.value:  # left pressed, fast player speed
-        if button_a == 0:
-            for enemy in enemies.enemy_list :
+        if button_a == 0: #아이템 한번씩만 사용 가능
+            for enemy in enemies.enemy_list :  #생성된 적들의 속도 줄이기
                 enemy.speed_down()
             print('enemy speed down!')
             button_a += 1
     if not button_B.value:  # left pressed, slow enemy speed
-        if button_b == 0:
+        if button_b == 0: #아이템을 한번씩만 할 수 있음
             player.speed_up()
             print('speed up!')
             button_b += 1
 
-    for i in range(len(enemies.enemy_list)) :
-        if i in delete_enemy :
+    for i in range(len(enemies.enemy_list)) :  #생성된 랜덤 enemy index
+        if i in delete_enemy :              #생성은 되었지만 뽑지 않아 보여지지 않는 것처럼 보임
             continue
         else :
-            image.paste(enemies.enemy_list[i].image, (enemies.enemy_list[i].left_top_x, enemies.enemy_list[i].left_top_y))
-    image.paste(player.image, (player.x_position, player.y_position))
-    player.move(up_down, left_right)
-
+            image.paste(enemies.enemy_list[i].image, (enemies.enemy_list[i].left_top_x, enemies.enemy_list[i].left_top_y))# 이미지 그리는것
+    image.paste(player.image, (player.x_position, player.y_position)) #에너미 리스트로 좌표 만들기
+    player.move(up_down, left_right) #플레이어 움직임 만듦
+    #enemy_list 에서 
     for i in range(len(enemies.enemy_list)) :
-        enemies.enemy_list[i].step()
+        enemies.enemy_list[i].step() #y 좌표 내려가는거 구현, enemies 에서 구현
         if i in delete_enemy :
             continue
-        hit = hit or enemies.enemy_list[i].hit_check(player)
+        hit = hit or enemies.enemy_list[i].hit_check(player) #플레이어가 맞는지 안맞는지 check 함 hit 가 한번이라도 1의 값을 가지면 유지 돌면서 0으로 초기화되어야함
     
-    if hit == 1:
+    if hit == 1:       #부딪혔을 때 hit 설정 후 맞은만큼 life 에서 까임 제대로 까였나 print 로 체크
         life -= 1
-        print(life)
-
+        print(life) #나오는 결과보고 life 남은거 확인
     if player.life == 0:
         while True:
                 draw.rectangle((0, 0, width, height), outline=0, fill=0)
@@ -165,15 +157,15 @@ while True:
             
                 draw.text((52, 120), "YOU GOT F GRADE", font = fnt2, fill = rcolor)
             
-                draw.text((52, 150), "YOU GOT F GRADE", font = fnt2, fill = rcolor)    #game clear 시..
+                draw.text((52, 150), "YOU GOT F GRADE", font = fnt2, fill = rcolor)    #game에서 클리어 하지 못할 시 형형색색으로 F학점을 맞았다고 해줌
                 disp.image(image)
-    if enemies.enemy_list[0].left_top_y >= 240 or hit :
-        hit = 0
-        first = 0
-        stage += 1
-        enemies = Enemies(stage)
-        player = Player(life, speed)
-        if stage > 20:
+    if enemies.enemy_list[0].left_top_y >= 240 or hit :            #적들의 리스트가 y좌포 240이면 끝에 닿았다는 소리 || 맞았을때의 상황 설명
+        hit = 0 #hit 초기화
+        new_stage = 0 #new_stage 를 0으로 해서 새로운 랜덤한 2개 추출
+        stage += 1 #다음스테이지로 넘어감
+        enemies = Enemies(stage)    #적들을 처음 위치로 설정함 , 객체 생성
+        player = Player(life, speed)    #플레이어 객체 맨 처음 위치로 초기화시킴
+        if stage > 20: #스테이지 클리어시
             while True:
                 draw.rectangle((0, 0, width, height), outline=0, fill=0)
 
@@ -185,24 +177,10 @@ while True:
             
                 draw.text((65, 150), "Game Clear!!!", font = fnt2, fill = rcolor)    #game clear 시..
                 disp.image(image)
-    draw.text((10,10), "stage: " + str(stage), font = fnt, fill = (255, 0, 0) ) #total score 표시되게 해야됨
-    draw.text((160, 10),"life: " + str(life), font = fnt, fill = (255, 0, 0) ) #남은 life 표시되게 해야됨
+    draw.text((10,10), "stage: " + str(stage), font = fnt, fill = (255, 0, 0) ) #맨 위에 total score 띄워줌
+    draw.text((160, 10),"life: " + str(life), font = fnt, fill = (255, 0, 0) ) #맨 위에 남은 life 띄워줌
     # Display the Image
     disp.image(image)
 
 
 
-#class Enemy:
-    #def __init__(self):
-        #여기 구현이 좀 힘듦 구역 240을 8로 쪼개어 x좌표방향으로 10부터 시작 
-        #
-        #image = 이미지 파일 F임
-        #height = 50 , width = 22(조절 가능) 
-        #1번 position부터 8번 position까지 만들어놓고 randomint 2개 뽑아서 두칸 비우기
-        #position은 x좌표 기준으로 하고 각각의 y1, y2..가 한번에 움직이고 만약 <=0이면 다시 처음으로 돌아가기
-        #루프문 끝난 다음에는 total_count +=1
-        #if Enemy.xposition = player.xposition || yposition(곂칠때) life -=1
-        #if Enemy.yposition < 170 Enemy.spd = 10(속도 계산)
-        #else Enemy.spd = 15(# 10단계까지)
-        #if total_score >= 5 spd = spd+5
-        #if spd = mx_spd: spd = mx_spd
